@@ -1,0 +1,188 @@
+{****************************
+** Switcharoo v1.0.5 - by Hushaboom **
+**Fast Zone switching tool for Kontakt**
+**Offers sample switching on the fly while maintaining full Velo Range.**
+**Developed By:  SultrySounds**
+**Producer:	Steve Sechler**
+**Programmer:	Robert Kerr**
+
+
+Copyright [2023] [SultrySound, LLC]
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+****************************
+}
+
+{each key individually switches between sample pools.}
+
+on init
+
+	{
+	Init needs to:
+	-declare variables
+	-configure the listener
+	-Count and arrange groups
+	
+	}
+	
+	
+	load_performance_view("perf.nckp")
+	message("Hello SultrySounds!")	{Messages and performance are new from v1.0.4}
+	
+	{Real numbers/Float Variables}
+	declare ~threshold := 0.0
+	declare ~messages := 0.0
+
+	{Switches}
+	declare $endZone	{Zone we are currently on}
+	declare $outcast	{Zone sent to stand-by}
+	declare $onGroup	{Active Zone}
+	declare $goBig		{Flag: activates all Zones}
+	declare $oldNote	{Flag: last note played}
+	declare $currNore	{Flag: Currnet note being played}
+	
+	{String Variables}
+	declare @robin_status
+	
+	{Integers}
+	declare $groupCount := -1
+	declare $onInit := 0
+	declare $ringer := 0
+	declare $count
+	
+	{Group Keys}	{Declaring 5 groups, but only using 2 for now}
+	declare $group0 := 0
+	declare $group1 := 1
+	declare $group2 := 2
+	declare $group3 := 3
+	declare $group4 := 4
+	
+	{Count Groups}	{Leaving this in for ease in testing}
+	while ($groupCount < $NUM_GROUPS)
+		$groupCount := $groupCount + 1
+		end while
+	
+	{Set Primary Group}
+	$onGroup := $group0	{Don't need to flag startup}
+	
+	{Listener Config}
+	set_listener($NI_SIGNAL_TIMER_MS,500000)	{Kontakt reads time in microseconds, not miliseconds}
+	
+	{UI Setup}
+	declare ui_label $label (2,6)
+	set_text($label,"")
+	
+end on
+
+
+
+	
+on note
+
+disallow_group($ALL_GROUPS)	{Silence all zones}
+~messages := ~messages + 0.5	{Log the key press}
+
+if ($goBig = 1)
+	
+	allow_group($ALL_GROUPS)
+	
+else
+
+	allow_group($onGroup)	{Activate zone}
+
+end if
+
+$count := 0
+
+{Retrieve Active Group Name, and display it}
+while ($count < num_elements(%GROUPS_AFFECTED))
+
+	add_text_line($label,group_name(%GROUPS_AFFECTED[$count]))
+	inc($count)
+
+end while
+
+end on
+
+
+
+on release
+
+~messages := ~messages + 0.5	{Log the key release}
+
+if ($ringer < 4)
+	
+	$onGroup := $group0
+	$outcast := 9999
+	~messages := 0.0
+	
+end if
+
+set_text($label,"")	{Clears the lable displaying active group}
+
+end on
+
+
+
+on listener
+
+$ringer := $ringer + 1	{Counting time cycles}
+
+{Time Based Conditions - Raise flags here for 'on note' or 'on release' to respond}
+
+if (~messages > 2.0)
+	
+	$outcast := $onGroup
+	$onGroup := $group1
+	~messages := 0.0
+	message("On Group 1, Group 0 outcast")
+	
+
+else
+
+		if ($outcast = $group0)
+		
+			$goBig := 0
+			$ringer := 0
+		
+		end if
+		
+		if ($onGroup = $group0)
+			
+			message("On Group 0, no outcast")
+			$outcast := 9999
+			$goBig := 0
+			
+		else
+			
+			message("All groups active")
+			$outcast := 9999
+			$goBig := 1
+			~messages := 0.0
+			
+		end if
+		
+if (($ringer > 6) and ($goBig = 1))
+
+	$onGroup := $group0
+	$outcast := 9999
+	$ringer := 0
+	$goBig := 0
+	~messages := 0.0
+	
+end if
+			
+end if
+
+end on

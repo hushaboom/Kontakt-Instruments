@@ -1,0 +1,215 @@
+on init
+	
+	make_perfview
+
+	declare $label
+
+	{Real numbers/Float Variables}
+	declare ~threshold := 0.0
+	declare ~messages := 0.0
+
+	{Switches}
+	
+	declare $timer_flag := 0	{It's a metronome, not a stopwatch.  so to measure time we need to set flags}
+	declare $onGroup	{Active Zone}
+	declare $oldNote	{Flag: last note played}
+	declare $currNote	{Flag: Currnet note being played}
+	declare $group_Pool := 0	{Select which group pool to draw samples from}
+	declare $switcharoo_on := 0	{Turn the thing on and off, default is double tap D1}
+	
+	declare $groupCount := -1
+	declare $onInit := 0
+	declare $ringer := 0
+	declare $count := 0
+	declare $grpcount := 0
+	declare $note_id
+	
+
+	
+	declare %act_group[5]
+
+	declare %grpArray0[5]
+		%grpArray0[0] := 0
+		%grpArray0[1] := 1
+		%grpArray0[2] := 2
+		%grpArray0[3] := 3
+		%grpArray0[4] := 4
+		
+	declare %grpArray1[5]
+		%grpArray1[0] := 5
+		%grpArray1[1] := 6
+		%grpArray1[2] := 7
+		%grpArray1[3] := 8
+		%grpArray1[4] := 9
+		
+	
+	{Count Groups}	{Leaving this in for ease in testing}
+	while ($groupCount < $NUM_GROUPS)
+		$groupCount := $groupCount + 1
+		end while
+	
+	{Set Primary Group and Group Pool}
+	
+	while (array_equal(%act_group, %grpArray0))
+	
+		%act_group[$count] := %grpArray0[$count]
+		inc($count)
+		
+	end while
+	
+	$onGroup := %act_group[0]
+	
+	
+	{Listener Config}
+	set_listener($NI_SIGNAL_TIMER_MS,20000)	{Kontakt reads time in microseconds, not miliseconds}
+	
+end on
+
+{-------------End of Init-------------}
+
+
+
+
+{----------Functions------------}
+
+
+function SS_func_grouper()
+
+	$grpcount := 0
+
+	if ($group_Pool = 1)
+		
+		message("Switching to sample pool 1")
+		
+		while (array_equal(%act_group, %grpArray0))
+	
+			%act_group[$grpcount] := %grpArray0[$grpcount]
+			inc($grpcount)
+			
+		end while
+		
+		$group_Pool := 0
+		$grpcount := 0
+		$onGroup := %act_group[0]
+		
+	else
+	
+		$grpcount := 0
+		
+		message("Switching to sample pool 2")
+		while (array_equal(%act_group, %grpArray1))
+	
+			%act_group[$grpcount] := %grpArray1[$grpcount]
+			inc($grpcount)
+			
+		end while
+		
+		$group_pool := 1
+		$count := 0
+		$onGroup := %act_group[0]
+	
+	end if
+
+end function
+
+
+
+function SS_func_flip()
+
+	if ($switcharoo_on = 1)
+
+				inc($count)
+				$onGroup := $count
+
+				if ($count > $groupCount - 1)
+					
+					$count := 0
+					
+					end if
+
+	end if
+	
+	if (($timer_flag > 1) and ($currNote = 36) and ($oldNote = 36) and ($switcharoo_on = 0))
+	
+		$switcharoo_on := 1
+		$timer_flag := 0
+	
+	else
+	
+		$switcharoo_on := 0
+		$timer_flag := 0
+		$onGroup := 0
+	
+	end if
+
+end function
+
+
+function SS_func_counter()
+
+	
+
+end function
+
+{------------End of Functions------------}
+
+
+
+
+{-------------Call Backs---------------}
+	
+on note
+
+disallow_group($ALL_GROUPS)	
+~messages := ~messages + 0.5	{Log the key press}
+
+inc($timer_flag)
+
+$currNote := $EVENT_NOTE
+
+call SS_func_flip()
+
+if ((($onGroup = 4) or ($onGroup = 9)) and ($switcharoo_on = 1))
+		
+		call SS_func_grouper()
+		~messages := 0.0
+		
+end if
+
+allow_group($onGroup)	{Activate zone}
+	
+
+
+
+end on 
+
+
+
+on release
+
+~messages := ~messages + 0.5	{Log the key release}
+$oldNote := $currNote
+
+if ($switcharoo_on = 1)
+
+	message("Switcharoo is on")
+	
+else
+
+	message($currNote)
+
+end if
+
+end on
+
+
+
+on listener
+
+
+{Time Based Conditions - Raise flags here for 'on note' or 'on release' to respond}
+
+
+end on
+
+{--------------End-------------}

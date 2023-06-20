@@ -1,0 +1,130 @@
+{****************************
+** Switcharoo v1.0.7 - by Hushaboom **
+**Fast Zone switching tool for Kontakt**
+**Offers sample switching on the fly while maintaining full Velo Range.**
+**Developed By:  SultrySounds**
+**Producer:	Steve Sechler**
+**Programmer:	Robert Kerr**
+
+
+Copyright [2023] [SultrySound, LLC]
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+****************************
+}
+
+
+{Initialization callback occurs only once on start up}
+on init
+
+	{generate random number}
+	declare $min := 0   
+	declare $max := 4
+	declare $range
+	declare $random
+
+	declare ui_label $badge(1,1)
+	declare ui_label $label (1, 1)
+	
+	declare @basepath
+	
+	declare $root_note := 24
+	declare $onGroup
+	
+	declare %array_1[5]
+
+	@basepath := "\switcharo Samples" 
+	
+end on
+{End of init callback}
+
+
+{User defined functions need to be declared first, outside of callbacks}
+
+function func_play_triad()
+
+	$onGroup := 1
+
+    play_note($root_note, 100, 0, 300000)
+    play_note($root_note + 4, 100, 0, 300000)
+    play_note($root_note + 7, 100, 0, 300000)
+	
+end function
+
+
+
+
+
+
+
+{on note callback occurs on every key press}
+on note
+
+while
+
+
+
+end while
+{generate a random number}
+$range := $max - $min
+$random := random($min,$max)
+
+
+
+{Display the number}
+set_text($badge, "sample Id: " & $random)
+set_text($label, "sample Id: " & $ZONE_PAR_ROOT_KEY)
+
+set_sample($random, @basepath)
+
+if ($random := 3)
+	
+	disallow_group($ALL_GROUPS)
+	allow_group($onGroup)
+	call func_play_triad()
+	
+else
+
+	allow_group($ALL_GROUPS)
+	
+end if
+
+end on
+{End of on note callback}
+
+
+
+{on release callback occurs on every key release}
+on release
+
+
+
+end on
+{End of on release callback}
+
+
+
+{on listener callback occurs every $n microseconds or $n divisions of tempo}
+on listener
+
+end on
+{End of on listener callback}
+
+
+
+{on controller callback happens with every CC event}
+on controller
+
+end on
+{End of on controller callback}

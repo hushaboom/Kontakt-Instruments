@@ -1,0 +1,36 @@
+on init
+	
+	declare $num
+	declare $onNote
+
+end on
+
+on note
+
+	$num := random(1,25)
+	message($EVENT_NOTE)
+
+	if (($EVENT_ID mod $num = 0) and ($EVENT_NOTE = 38))
+		
+		reset_ksp_timer
+
+		while ($KSP_TIMER < 10000)
+
+			if ($EVENT_NOTE = 38)
+	
+				$onNote := $onNote + 1
+	
+				set_midi($MIDI_CHANNEL, $MIDI_COMMAND_NOTE_OFF, $MIDI_BYTE_1, $MIDI_BYTE_2)
+				ignore_midi
+			
+				set_midi($MIDI_CHANNEL, $MIDI_COMMAND_NOTE_ON, $MIDI_BYTE_1 + 1, $MIDI_BYTE_2)
+				ignore_midi
+				set_midi($MIDI_CHANNEL, $MIDI_COMMAND_NOTE_OFF, $MIDI_BYTE_1 + 1, $MIDI_BYTE_2)
+			
+			end if
+
+	end while
+		
+	end if
+
+end on

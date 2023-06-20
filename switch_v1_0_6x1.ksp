@@ -1,0 +1,199 @@
+{****************************
+** Switcharoo v1.0.6 - by Hushaboom **
+**Fast Zone switching tool for Kontakt**
+**Offers sample switching on the fly while maintaining full Velo Range.**
+**Developed By:  SultrySounds**
+**Producer:	Steve Sechler**
+**Programmer:	Robert Kerr**
+
+
+Copyright [2023] [SultrySound, LLC]
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+
+****************************
+}
+
+{each key individually switches between sample pools.}
+{Use Morse code varient to select samples}
+
+on init
+
+	{
+	
+	Init needs to:
+	-declare variables
+	-configure the listener to recognize individual CC event on/off codes
+	-configure UI to highlight which sample pool is being drawn from
+	-configure UI - does on ui do ui config?  -  no
+	-configure CC select options
+
+	_codes based on CC on/off events..   
+
+	($CC_NUM,0,127) - count these
+	CC7 goes on/off in 200ms, switch to sample B
+	CC7 once more to reset
+
+	**ALL CC Querey's go in on controller callback**
+
+	}
+	
+	
+	load_performance_view("switch.nckp")
+	message("Hello from SultrySound!")	{Messages and performance are new from v1.0.4}
+	
+	{Real numbers/Float Variables}
+	declare ~threshold := 0.0
+	declare ~messages := 0.0
+
+	{Switches}
+	declare $endZone	{Last Zone used}
+	declare $outcast	{Zone sent to stand-by}
+	declare $onZone	{Active Zone}
+	declare $goBig		{Flag: activates all Zones}
+	declare $CCon	{Flag: CC events}
+	declare $CCoff
+	
+	{String Variables}
+	declare @robin_status
+	
+	{Integers}
+	declare $groupCount := -1
+	declare $onInit := 0
+	declare $ringer := 0
+	declare $count
+	
+	{Zone Keys}	{Declaring 5 Zone, but only using 2 for now}  {need to zero in on final Zone structure}
+	declare $zone0 := 0
+	declare $zone1 := 1
+	declare $zone2 := 2
+	declare $zone3 := 3
+	declare $zone4 := 4
+	
+	{Count Groups}	{Leaving this in for ease in testing}   {Groups and zones basically the same thing, seperating for sake of the experiment  v1.0.6}
+	while ($groupCount < $NUM_GROUPS)
+		$groupCount := $groupCount + 1
+		end while
+	
+	{Set Primary Zone}
+	$onZone := $zone0	
+	
+	{Listener Config}
+	set_listener($NI_SIGNAL_TIMER_MS,600000)	{Kontakt reads time in microseconds, not miliseconds - preset at 1.0sec}
+	{Note:  Divide by tempo to synch delay to beat}
+
+	{UI Setup}
+
+	declare ui_menu $Menu
+	add_menu_item ($Menu,"Menu Item",0)
+
+	declare ui_label $label (2,6)
+	set_text($label,"")    {Dynamic text display - new for v1.0.5}
+	
+	
+	set_ui_height(5)
+ 
+	declare @basepath
+	
+	@basepath := "\switcharo Samples"    {Need to automate finding path}
+
+	{starting with basic layout for now}
+	declare @file_name
+	declare @file_path
+
+	declare ui_file_selector $file_browser
+	declare $browser_id
+	$browser_id := get_ui_id($file_browser)
+
+	set_control_par_str($browser_id,$CONTROL_PAR_BASEPATH,@basepath)
+	set_control_par($browser_id,$CONTROL_PAR_FILE_TYPE,$NI_FILE_TYPE_MIDI)
+	set_control_par($browser_id,$CONTROL_PAR_COLUMN_WIDTH,180)
+	set_control_par($browser_id,$CONTROL_PAR_HEIGHT,170)
+	set_control_par($browser_id,$CONTROL_PAR_WIDTH,550)
+	move_control_px($file_browser,66,2)
+
+	declare ui_button $prev
+	declare ui_button $next
+	move_control($prev,5,1)
+	move_control($next,6,1)
+
+	declare $load_mf_id
+	$load_mf_id := -1
+	
+end on
+
+on ui_update
+{This command is triggered with every GUI change in KONTAKT, so use it with caution.
+Kontakt hack - set_text($lable"Dynamic text!") in ui_update would cause an infinite loop,
+assuming i understand the theory correctly.
+}
+
+end on
+
+on note
+{need to develop this using notes until i get midi controller.  then translate code to repond to CC}
+{on note will stand in for CC - On}
+$CCon := $CCon + 1
+
+set_text($label, "On note")    {Set text to say On Note}
+
+end on
+
+
+
+on release
+{On release will stand in for CC off}
+$CCoff := $CCoff + 1
+set_text($label, "On release")    {Set text to say On release}
+
+if ($CCoff > 5)
+
+	set_text($label, "")    {Clear text}
+
+end if
+
+end on
+
+
+
+on listener
+{All timing goes here}
+
+if ($CCon = 1)
+	
+	{Start the metronome at our prescribed delay}
+	change_listener_par($NI_SIGNAL_TIMER_MS,200000)
+
+end if
+
+if ($CCon = 2)
+
+	{Stop the metronome, and compare}
+	
+end if
+
+end on
+
+
+
+on controller
+{All CC Queries go here}
+{Def at a bottle neck until i can sim midi}
+
+if (in_range($CC_NUM,0,127))
+
+	message("CC Number: "& $CC_NUM&" - Value: " & %CC[$CC_NUM])	{Should capture CC event number, and display}
+
+end if
+
+end on

@@ -1,0 +1,37 @@
+{Switcharoo v1.0.9 - By Hushaboom}
+
+{----------Begin----------}
+on init
+
+make_perfview	{Enable Performance View}
+
+
+end on
+{----------End Init----------}
+
+
+
+{----------Begin Functions----------}
+
+
+{----------End Functions----------}
+
+
+
+{----------Note Callbacks----------}
+
+on note
+end on
+
+on release
+end on
+
+{----------End Notes----------}
+
+
+{----------Timing----------}
+
+on listener
+end on
+
+{----------EOF----------}
