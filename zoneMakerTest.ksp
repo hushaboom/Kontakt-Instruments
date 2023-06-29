@@ -1,0 +1,86 @@
+{Make a zone and load a sample.  Test}
+
+on init
+
+    make_perfview
+
+    {Set Variables}
+    declare $i {Generic counting variable}
+    declare $startZoneCount {Number of NON user zones}
+    declare $switchOn := 0  {Switch for sample load}
+    
+    {Prefab some zones (Max 1024)}
+    set_num_user_zones (1024) {Declare max number of user zones}
+
+    $startZoneCount := get_num_zones() - 1024   {Number of pre-loaded zones}
+
+     while ( $i < 1024) {Create user zones, and place them all on Note 0 (-C2), velo index 1}
+ 
+        set_zone_par (%NI_USER_ZONE_IDS[$i], $ZONE_PAR_HIGH_VELO, 1) {Nullify velocity range}
+        set_zone_par (%NI_USER_ZONE_IDS[$i], $ZONE_PAR_ROOT_KEY, 0)  {Root to first key}
+        set_zone_par (%NI_USER_ZONE_IDS[$i], $ZONE_PAR_HIGH_KEY, 0) {Low key to root}
+        set_zone_par (%NI_USER_ZONE_IDS[$i], $ZONE_PAR_LOW_KEY, 0) {High key to root}
+
+        inc( $i )
+
+    end while
+
+    {Get Zone ID for pre-loaded zones}
+    declare %startZones[1024]
+    
+    while ($i < $startZoneCount)
+
+        %startZones[$i] := get_zone_id ($i)
+        inc ($i)
+    
+    end while
+
+    {Sample file management}
+    declare @sampleName
+    declare @samplePath
+    declare @basepath
+    
+    @basepath := get_folder($GET_FOLDER_PATCH_DIR) & "Dreambeat Samples/"
+
+    message ($i & " " & $startZoneCount)
+
+end on
+
+
+{Make a switch to call the sample changeover}
+on note
+
+    if ($EVENT_NOTE = 24)
+
+        if ($switchOn = 0)
+
+            {Set the Zone params}
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1],$ZONE_PAR_HIGH_VELO,127) { Cover entire velocity range }
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1],$ZONE_PAR_ROOT_KEY,26)  { Root same as note number }
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1],$ZONE_PAR_HIGH_KEY,26) { Low key same as note number }
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1],$ZONE_PAR_LOW_KEY,26) { High key same as note number }
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1],$ZONE_PAR_VOLUME,600) { Set the volume }
+
+            {Load a sample}
+            wait_async(set_sample (%NI_USER_ZONE_IDS[$i + 1], @basepath & "Techno Tom 03.wav"))
+
+            $switchOn := 1
+
+        else
+
+            {Nullify the zone}
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1], $ZONE_PAR_HIGH_VELO, 1) 
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1], $ZONE_PAR_ROOT_KEY, 0)  
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1], $ZONE_PAR_HIGH_KEY, 0) 
+            set_zone_par (%NI_USER_ZONE_IDS[$i + 1], $ZONE_PAR_LOW_KEY, 0) 
+
+            {Clear the sample}
+            wait_async(set_sample (%NI_USER_ZONE_IDS[$i + 1], ""))
+
+            $switchOn := 0
+        
+        end if
+    
+    end if
+
+end on
