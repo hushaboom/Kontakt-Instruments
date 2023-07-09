@@ -1,0 +1,111 @@
+on init
+
+    {Create user zones, declare variables, set key colors}
+
+    make_perfview
+    set_script_title ("Symon")
+    set_snapshot_type(0)
+
+    declare ui_label $label(1,1)
+
+    declare @samples_path
+        @samples_path :=  get_folder ($GET_FOLDER_LIBRARY_DIR) & "Edited Samples/"
+
+    declare $i := 0 {Generic counting variable}
+    declare $iA := 0 {Generic counting variable}
+    
+    declare const $zoneCount := 6
+
+    set_num_user_zones (1024)
+
+    declare !zones[$zoneCount]
+
+        !zones[0] := "C2.wav"
+        !zones[1] := "D#2.wav"
+        !zones[2] := "F2.wav"
+        !zones[3] := "G2.wav"
+        !zones[4] := "A#2.wav"
+        !zones[5] := "C3.wav"
+
+    {Map the keys via script - first create and hide zones}
+
+     while ( $i < $zoneCount - 1) {Create user zones, and place them all on Note 0 (-C2), velo index 1}
+ 
+        set_zone_par (%NI_USER_ZONE_IDS[$i], $ZONE_PAR_HIGH_VELO, 1) {Nullify velocity range}
+        set_zone_par (%NI_USER_ZONE_IDS[$i], $ZONE_PAR_ROOT_KEY, 0)  {Root to first key}
+        set_zone_par (%NI_USER_ZONE_IDS[$i], $ZONE_PAR_HIGH_KEY, 0) {Low key to root}
+        set_zone_par (%NI_USER_ZONE_IDS[$i], $ZONE_PAR_LOW_KEY, 0) {High key to root}
+        
+        if ($i < 128)
+
+            set_key_color ($i, $KEY_COLOR_INACTIVE) 
+
+        end if
+        inc( $i )
+
+    end while
+
+    $i := 0
+
+    {C2}
+    set_zone_par (%NI_USER_ZONE_IDS[0], $ZONE_PAR_HIGH_VELO, 127) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[0], $ZONE_PAR_LOW_VELO, 0) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[0], $ZONE_PAR_ROOT_KEY, 36)  { Root same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[0], $ZONE_PAR_HIGH_KEY, 38) { Low key same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[0], $ZONE_PAR_LOW_KEY, 36) { High key same as note number }
+    
+    set_sample (%NI_USER_ZONE_IDS[0], @samples_path & !zones[0])
+
+    {D#2}
+    set_zone_par (%NI_USER_ZONE_IDS[1], $ZONE_PAR_HIGH_VELO, 127) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[1], $ZONE_PAR_LOW_VELO, 0) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[1], $ZONE_PAR_ROOT_KEY, 39)  { Root same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[1], $ZONE_PAR_HIGH_KEY, 40) { Low key same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[1], $ZONE_PAR_LOW_KEY, 39) { High key same as note number }
+    
+    set_sample (%NI_USER_ZONE_IDS[1], @samples_path & !zones[1])
+
+    {F2}
+    set_zone_par (%NI_USER_ZONE_IDS[2], $ZONE_PAR_HIGH_VELO, 127) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[2], $ZONE_PAR_LOW_VELO, 0) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[2], $ZONE_PAR_ROOT_KEY, 41)  { Root same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[2], $ZONE_PAR_HIGH_KEY, 42) { High key same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[2], $ZONE_PAR_LOW_KEY, 41) { High key same as note number }
+    
+    set_sample (%NI_USER_ZONE_IDS[2], @samples_path & !zones[2])
+
+    {G2}
+    set_zone_par (%NI_USER_ZONE_IDS[3], $ZONE_PAR_HIGH_VELO, 127) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[3], $ZONE_PAR_LOW_VELO, 0) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[3], $ZONE_PAR_ROOT_KEY, 43)  { Root same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[3], $ZONE_PAR_HIGH_KEY, 45) { High key same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[3], $ZONE_PAR_LOW_KEY, 43) { High key same as note number }
+    
+    set_sample (%NI_USER_ZONE_IDS[3], @samples_path & !zones[3])
+
+    {G2}
+    set_zone_par (%NI_USER_ZONE_IDS[4], $ZONE_PAR_HIGH_VELO, 127) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[4], $ZONE_PAR_LOW_VELO, 0) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[4], $ZONE_PAR_ROOT_KEY, 46)  { Root same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[4], $ZONE_PAR_HIGH_KEY, 47) { High key same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[4], $ZONE_PAR_LOW_KEY, 46) { High key same as note number }
+    
+    set_sample (%NI_USER_ZONE_IDS[4], @samples_path & !zones[4])
+    
+    {C3}
+    set_zone_par (%NI_USER_ZONE_IDS[5], $ZONE_PAR_HIGH_VELO, 127) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[5], $ZONE_PAR_LOW_VELO, 0) { Cover entire velocity range }
+    set_zone_par (%NI_USER_ZONE_IDS[5], $ZONE_PAR_ROOT_KEY, 48)  { Root same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[5], $ZONE_PAR_HIGH_KEY, 48) { Low key same as note number }
+    set_zone_par (%NI_USER_ZONE_IDS[5], $ZONE_PAR_LOW_KEY, 48) { High key same as note number }
+    
+    set_sample (%NI_USER_ZONE_IDS[5], @samples_path & !zones[5])
+
+end on
+
+{  }
+on note
+
+    message ($EVENT_NOTE)
+
+end on
