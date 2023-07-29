@@ -1,0 +1,68 @@
+{
+    Switcharoo - by Hushaboom
+----------------------------------------------------------------------
+     Copyright [2023] [Robert Kerr]
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+----------------------------------------------------------------------
+
+     -Fast sample/zone switching
+    -maintain full velocity range
+    -large scope Round-Robin
+    -Key coloring
+
+}
+
+on init
+
+    make_perfview
+    set_snapshot_type(3)
+
+    {Variables}
+    declare $oldZone
+    declare $newZone
+
+    {Counters}
+    declare $zoneCount := 0
+
+end on
+
+function zoner()
+
+    $newZone := $zoneCount
+    set_zone_par($oldZone,$ZONE_PAR_GROUP,0)
+    set_zone_par($newZone,$ZONE_PAR_GROUP,1)
+    
+end function
+
+on note
+
+    disallow_group($ALL_GROUPS)
+    allow_group(1)
+
+end on
+
+on release
+
+    $oldZone := $newZone
+    
+    call zoner()
+    inc ($zoneCount)
+
+    if ($zoneCount = 3)
+
+        $zoneCount := 0
+
+    end if
+
+end on
